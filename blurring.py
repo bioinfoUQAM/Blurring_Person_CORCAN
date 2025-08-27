@@ -36,7 +36,7 @@ from deep_sort_realtime.deepsort_tracker import DeepSort
 # =========================
 # CONFIGURATIONS
 # =========================
-MODEL_PATH = "/mnt/4/best.pt"
+MODEL_PATH = "/mnt/4/best.pt" # you can find this file in Darwin machine
 INPUT_DIR  = "/mnt/4/ORIGINAL_VIDEOS"  # input folder with videos
 OUTPUT_DIR = "/mnt/4/ORIGINAL_VIDEOS_filled_blurred_sem_bb_person40_head20"
 os.makedirs(OUTPUT_DIR, exist_ok=True)

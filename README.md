@@ -53,3 +53,16 @@ OUTPUT_DIR: where anonymized videos will be saved
 Linear interpolation assumes smooth motion; very long occlusions won’t be reconstructed.
 
 Best performance with stable FPS and well-trained YOLO weights that include person and head classes.
+
+# Additional informations 
+The model training was conducted on the Compute Canada Cedar cluster using the dataset located at:
+
+/scratch/Blurring2025/Dataset_4_head_person/
+
+For pre-training, we utilized the CrowdHuman dataset available at:
+
+/scratch/Blurring2025/crowdhuman/
+
+Subsequently, fine-tuning was performed using our custom dataset stored in Dataset_4_head_person.
+
+We trained using yolov8, and you can run using the train_yolov8.sh if necessary.

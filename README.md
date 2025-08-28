@@ -1,3 +1,11 @@
+# Results of blurring in many cameras!
+
+<img width="927" height="878" alt="Captura de Tela 2025-08-28 às 2 06 59 AM" src="https://github.com/user-attachments/assets/0998bb4c-155b-4bb2-9cb7-48ad156ca23d" />
+<img width="1642" height="855" alt="Captura de Tela 2025-08-28 às 2 07 16 AM" src="https://github.com/user-attachments/assets/20b5d673-4d97-4fb9-ad30-d825998f5668" />
+<img width="1702" height="849" alt="Captura de Tela 2025-08-28 às 2 07 38 AM" src="https://github.com/user-attachments/assets/5ddc8e52-975f-41a7-8da2-6631d8577cce" />
+<img width="1625" height="828" alt="Captura de Tela 2025-08-28 às 2 07 50 AM" src="https://github.com/user-attachments/assets/3a8ad549-efe9-41cd-9130-efab34b80736" />
+
+
 # What it does
 
 Detection (YOLOv8): Runs Ultralytics YOLO on each frame, filtering to person and head with per-class confidence thresholds.
@@ -67,10 +75,4 @@ Subsequently, fine-tuning was performed using our custom dataset stored in Datas
 
 We trained using yolov8, and you can run using the train_yolov8.sh if necessary.
 
-# Results of blurring in many cameras!
-
-<img width="927" height="878" alt="Captura de Tela 2025-08-28 às 2 06 59 AM" src="https://github.com/user-attachments/assets/0998bb4c-155b-4bb2-9cb7-48ad156ca23d" />
-<img width="1642" height="855" alt="Captura de Tela 2025-08-28 às 2 07 16 AM" src="https://github.com/user-attachments/assets/20b5d673-4d97-4fb9-ad30-d825998f5668" />
-<img width="1702" height="849" alt="Captura de Tela 2025-08-28 às 2 07 38 AM" src="https://github.com/user-attachments/assets/5ddc8e52-975f-41a7-8da2-6631d8577cce" />
-<img width="1625" height="828" alt="Captura de Tela 2025-08-28 às 2 07 50 AM" src="https://github.com/user-attachments/assets/3a8ad549-efe9-41cd-9130-efab34b80736" />
 

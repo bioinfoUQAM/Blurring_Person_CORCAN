@@ -76,3 +76,12 @@ Subsequently, fine-tuning was performed using our custom dataset stored in Datas
 We trained using yolov8, and you can run using the train_yolov8.sh if necessary.
 
 
+# Update Compute Canada:
+
+We are reaching out to inform you that the Cedar compute cluster will be retired on September 12, 2025.
+
+Data Access
+
+Files stored on Cedar are already available on Fir because the two clusters share the same file systems; no action is required regarding your stored files.
+
+Starting September 12, please submit your jobs to Fir or another cluster on our new national infrastructure.

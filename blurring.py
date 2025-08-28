@@ -4,20 +4,12 @@
 """
 Multi-GPU person/head detection, tracking, gap-filling, and anonymization.
 
-Key features:
-- Spawns one worker process per GPU (up to 4). Each worker processes a subset of videos.
-- Uses YOLO (Ultralytics) for detection and DeepSORT for tracking.
-- Tries TorchReID (OSNet) embeddings; falls back to Mobilenet on CPU if unavailable.
-- Stores per-track bounding boxes per frame, then fills gaps by linear interpolation (up to N seconds).
-- Applies anonymization (pixelation by default) on both detected and interpolated boxes.
-- Optionally draws boxes/labels (disabled by default).
-
-Notes:
-- CUDA + multiprocessing requires the "spawn" start method. Do not create CUDA contexts in the parent.
-- Model is loaded inside each worker after selecting its GPU.
-- Interpolation helps maintain continuous anonymization across short occlusions or missed detections.
-
-Adjust the paths in CONFIGURATIONS and run.
+- Spawns one worker per GPU (up to 4). Each worker processes a subset of videos.
+- YOLO (Ultralytics) for detection; DeepSORT for tracking (TorchReID/OSNet preferred, Mobilenet fallback).
+- Stores per-track boxes and fills short gaps via linear interpolation.
+- Applies anonymization (pixelation by default) to detected and interpolated boxes.
+- Mirrors INPUT_DIR's folder structure inside OUTPUT_DIR.
+- Boxes/labels overlay disabled by default (DRAW_BOXES=False).
 """
 
 import os
@@ -36,9 +28,9 @@ from deep_sort_realtime.deepsort_tracker import DeepSort
 # =========================
 # CONFIGURATIONS
 # =========================
-MODEL_PATH = "/mnt/4/best.pt" # you can find this file in Darwin machine
-INPUT_DIR  = "/mnt/4/ORIGINAL_VIDEOS"  # input folder with videos
-OUTPUT_DIR = "/mnt/4/ORIGINAL_VIDEOS_filled_blurred_sem_bb_person40_head20"
+MODEL_PATH = "/mnt/4/best.pt"
+INPUT_DIR  = "/mnt/4/last"  # input folder with videos (recursively)
+OUTPUT_DIR = "/mnt/4/lastfinal"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Online tracking (DeepSORT) settings
@@ -68,7 +60,7 @@ BLUR_SCALE        = 0.25     # Gaussian kernel as a fraction of the ROI's min si
 PIXEL_BLOCK       = 15       # pixelation block size (bigger = coarser)
 DRAW_BOXES        = False    # overlay boxes/labels on top of anonymization
 
-# Colors for optional overlay
+# Colors for optional overlay (unused when DRAW_BOXES=False)
 COLOR_PERSON = (0, 255, 0)
 COLOR_HEAD   = (255, 0, 0)
 COLOR_INTERP = (0, 255, 255)
@@ -78,7 +70,7 @@ COLOR_INTERP = (0, 255, 255)
 # =========================
 def resolve_embedder():
     """
-    Try to use TorchReID (OSNet). If the module is not available in this environment,
+    Try to use TorchReID (OSNet). If the module is not available,
     fall back to Mobilenet (TensorFlow) on CPU to avoid GPU conflicts.
     """
     try:
@@ -230,6 +222,7 @@ def worker_process(video_list, gpu_id):
       - isolates a single GPU via CUDA_VISIBLE_DEVICES
       - loads YOLO onto that GPU
       - processes its share of videos
+      - mirrors INPUT_DIR subfolders inside OUTPUT_DIR
     """
     # Select a single visible GPU for this process BEFORE any CUDA calls
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
@@ -243,8 +236,14 @@ def worker_process(video_list, gpu_id):
 
     for video_path in video_list:
         try:
-            stem = Path(video_path).stem
-            out_mp4 = os.path.join(OUTPUT_DIR, stem + "_pixel.mp4")
+            # Mirror folder structure from INPUT_DIR inside OUTPUT_DIR
+            rel_path = os.path.relpath(video_path, INPUT_DIR)   # e.g., "sub1/sub2/video.mp4"
+            rel_dir  = os.path.dirname(rel_path)                 # e.g., "sub1/sub2"
+            out_dir  = os.path.join(OUTPUT_DIR, rel_dir)         # e.g., ".../OUTPUT_DIR/sub1/sub2"
+            os.makedirs(out_dir, exist_ok=True)
+
+            stem    = Path(video_path).stem
+            out_mp4 = os.path.join(out_dir, f"{stem}_blurred.mp4")
 
             cap = cv2.VideoCapture(video_path)
             if not cap.isOpened():
@@ -290,7 +289,7 @@ def worker_process(video_list, gpu_id):
                         else:
                             detH.append(([x1, y1, x2 - x1, y2 - y1], conf, cname))
 
-                # DeepSORT updates
+                # DeepSORT updates (commit only if matched in this frame)
                 for t in tracker_person.update_tracks(detP, frame=frame):
                     if t.is_confirmed() and getattr(t, "time_since_update", 0) <= RECENT_MATCH_MAX:
                         persons_series[int(t.track_id)][fidx] = list(map(int, t.to_ltrb()))
@@ -367,7 +366,7 @@ if __name__ == "__main__":
     # Required for CUDA + multiprocessing on Linux
     mp.set_start_method("spawn", force=True)
 
-    # Collect videos from INPUT_DIR
+    # Collect videos from INPUT_DIR (recursive)
     videos = []
     for r, _, fs in os.walk(INPUT_DIR):
         for f in fs:
